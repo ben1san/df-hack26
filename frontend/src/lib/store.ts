@@ -3,7 +3,7 @@
 import { create } from 'zustand'
 import { api } from './api'
 import type {
-  Death, Edit, Grid, Month, Repeat, Rule, Scope, ShiftKind, SolveResult, Stage, Ward,
+  Death, Edit, Grid, Month, Repeat, Rule, ShiftKind, SolveResult, Stage, Ward,
 } from './types'
 
 /** 段階0。POST /api/ward を押すまでサーバに出ない */
@@ -142,15 +142,6 @@ export const weekdayOf = (m: Month | null, day: number) =>
   m ? (m.first_weekday + day - 1) % 7 : 0
 
 /** 棄却 ＝ 提案があって現状が違うセル */
-export const isRejected = (proposal: Grid, current: Grid, nurseId: string, day: number) => {
-  const p = proposal[nurseId]?.[day - 1]
-  const c = current[nurseId]?.[day - 1]
-  return !!p && p !== c
-}
-
-export const countBy = (grid: Grid, nurseId: string, kinds: string[]) =>
-  (grid[nurseId] ?? []).filter(c => c && kinds.includes(c)).length
-
 export const nightHours = (ward: Ward | null, grid: Grid, nurseId: string) =>
   !ward ? 0 : (grid[nurseId] ?? []).reduce((a, c) => {
     const k = ward.shift_kinds.find(x => x.id === c)
@@ -160,4 +151,3 @@ export const nightHours = (ward: Ward | null, grid: Grid, nurseId: string) =>
 export const perDay = (ward: Ward | null, grid: Grid, day: number, kindId: string) =>
   !ward ? 0 : ward.nurses.filter(n => grid[n.id]?.[day - 1] === kindId).length
 
-export const SCOPES: Scope[] = ['one', 'allwd', 'allp']

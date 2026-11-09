@@ -214,12 +214,6 @@ Rule = Annotated[
 
 # ---------------------------------------------------------------- 表と編集
 
-class Cell(BaseModel):
-    nurse_id: str
-    day: int                     # 1始まり
-    kind_id: str | None = None   # None は未定
-
-
 class Edit(BaseModel):
     """手修正1件。追記のみ。これが消えると反復が観測できなくなる。"""
     id: str

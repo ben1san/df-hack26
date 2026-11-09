@@ -51,8 +51,6 @@ export type Rule =
                   unit: '回' | '時間'; at_least?: number | null; at_most?: number | null })
   | (RuleBase & { type: 'wardNightAverage'; cap: number; min_night_hours_to_count: number })
 
-export type RuleType = Rule['type']
-
 /** 手修正1件。追記のみ。from はソルバが置いたもの */
 export interface Edit {
   id: string; nurse_id: string; day: number
