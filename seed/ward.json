@@ -1,0 +1,128 @@
+{
+ "id": "w1",
+ "name": "3階東病棟",
+ "shift_kinds": [
+  {
+   "id": "日",
+   "name": "日勤",
+   "hours": 8.0,
+   "night_hours": 0.0,
+   "crosses_midnight": false,
+   "is_off": false,
+   "counts_as_staff": true
+  },
+  {
+   "id": "準",
+   "name": "準夜勤",
+   "hours": 8.5,
+   "night_hours": 8.5,
+   "crosses_midnight": true,
+   "is_off": false,
+   "counts_as_staff": true
+  },
+  {
+   "id": "深",
+   "name": "深夜勤",
+   "hours": 8.5,
+   "night_hours": 7.5,
+   "crosses_midnight": true,
+   "is_off": false,
+   "counts_as_staff": true
+  },
+  {
+   "id": "休",
+   "name": "公休",
+   "hours": 0.0,
+   "night_hours": 0.0,
+   "crosses_midnight": false,
+   "is_off": true,
+   "counts_as_staff": true
+  },
+  {
+   "id": "研",
+   "name": "研修",
+   "hours": 8.0,
+   "night_hours": 0.0,
+   "crosses_midnight": false,
+   "is_off": false,
+   "counts_as_staff": false
+  }
+ ],
+ "nurses": [
+  {
+   "id": "1",
+   "name": "田中 美咲",
+   "qual": "主任",
+   "groups": []
+  },
+  {
+   "id": "2",
+   "name": "佐藤 恵",
+   "qual": "正",
+   "groups": []
+  },
+  {
+   "id": "3",
+   "name": "鈴木 彩",
+   "qual": "正",
+   "groups": []
+  },
+  {
+   "id": "4",
+   "name": "高橋 理恵",
+   "qual": "正",
+   "groups": []
+  },
+  {
+   "id": "5",
+   "name": "伊藤 奈美",
+   "qual": "正",
+   "groups": []
+  },
+  {
+   "id": "6",
+   "name": "渡辺 真由",
+   "qual": "正",
+   "groups": []
+  },
+  {
+   "id": "7",
+   "name": "山本 由紀",
+   "qual": "正",
+   "groups": []
+  },
+  {
+   "id": "8",
+   "name": "中村 さくら",
+   "qual": "准",
+   "groups": []
+  },
+  {
+   "id": "9",
+   "name": "小林 千尋",
+   "qual": "准",
+   "groups": []
+  },
+  {
+   "id": "10",
+   "name": "加藤 瑞希",
+   "qual": "正",
+   "groups": []
+  },
+  {
+   "id": "11",
+   "name": "吉田 遥",
+   "qual": "新人",
+   "groups": []
+  },
+  {
+   "id": "12",
+   "name": "山田 杏",
+   "qual": "新人",
+   "groups": []
+  }
+ ],
+ "night_band_start": 16,
+ "night_average_cap": 72.0,
+ "day_groups": {}
+}
