@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>前月から — 勤務表</title>
+<link rel="stylesheet" href="ui.css">
+<style>
+.pane{max-width:980px}
+.scroll{overflow-x:auto}
+table{border-collapse:separate;border-spacing:0;background:var(--s1);
+  border:1px solid var(--line2);border-radius:10px;overflow:hidden;font-variant-numeric:tabular-nums}
+th,td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:0}
+thead th{background:var(--s2);border-bottom:1px solid var(--line2)!important}
+.nmh,.nm{min-width:148px;max-width:148px;text-align:left;padding:0 11px!important;
+  border-right:1px solid var(--line2)!important;background:var(--s1)}
+thead .nmh{background:var(--s2)}
+.dh{min-width:38px;width:38px;padding:5px 0!important;text-align:center;
+  font-size:11px;font-weight:600;color:var(--ink2);line-height:1.3}
+.dh span{display:block;font-size:10px;font-weight:500;color:var(--ink3)}
+.dh.nxt{color:var(--ink3);background:var(--s3)}
+.edge{border-right:2px solid var(--ink)!important}
+tbody tr{height:34px}
+.nm{font-size:13.5px;font-weight:500;white-space:nowrap}
+.nm i{font-style:normal;font-size:10.5px;color:var(--ink3);margin-left:6px}
+td.c{width:38px;text-align:center;font-size:14px;font-weight:700;cursor:pointer;position:relative}
+td.c:hover{outline:2px solid var(--ink);outline-offset:-2px;z-index:2}
+td.c .v{display:grid;place-items:center;width:100%;height:34px}
+td.c.empty .v{background:repeating-linear-gradient(45deg,transparent,transparent 3px,var(--s3) 3px,var(--s3) 4px)}
+td.nxt{background:var(--s3);cursor:default}
+td.nxt:hover{outline:none}
+td.nxt .v{background:none}
+.stat{min-width:158px;width:158px;font-size:12px;text-align:left;padding:0 11px!important;
+  border-left:2px solid var(--ink)!important;color:var(--ink2)}
+.stat.warn{background:var(--warn-bg);color:var(--ink);font-weight:600}
+.stat.bad{background:var(--crit-bg);color:var(--ink);font-weight:600}
+#pop{position:fixed;z-index:60;display:none;background:var(--s1);border:1px solid var(--line2);
+  border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.14);padding:9px}
+#pop .row{display:flex;gap:5px}
+#pop button{width:36px;height:34px;border-radius:6px;border:1px solid var(--line2);
+  font:inherit;font-size:14px;font-weight:700;cursor:pointer;background:var(--s1);color:var(--ink)}
+#pop button:hover{border-color:var(--ink)}
+.tools{display:flex;gap:11px;align-items:center;flex-wrap:wrap;margin-bottom:12px;
+  font-size:13px;color:var(--ink3)}
+</style>
+</head>
+<body>
+<div class="pane">
+  <div class="step">C / 5</div>
+  <h1>先月の終わりを入れてください。</h1>
+  <p class="lede"><b>月は途切れていません。</b>10月末の勤務が分からないと、11月の頭で連続勤務も夜勤の間隔も数えられません。</p>
+
+  <div class="sec">
+    <h2>2026年10月の終わり<span class="r" id="cnt"></span></h2>
+    <div class="in">
+      <div class="tools">
+        <button class="add" id="clear">ぜんぶ空にする</button>
+        <span><b style="color:var(--ink2)">空欄は休みとして扱います。</b>月をまたいで働いた人だけ入れれば足ります。</span>
+      </div>
+      <div class="scroll"><table id="t"></table></div>
+    </div>
+  </div>
+
+  <div id="warn"></div>
+
+  <div class="note">
+    <h3>なぜ設定欄ではなく表で入れるか</h3>
+    <p>日本の勤務表ソフト（スケジュールナースⅢ）のマニュアルにこうあります —
+      <b>「表示開始日は、通常、先月からの勤務の連続性のために必要です。
+      通常、前月のデータを入れるのでスケジュールする余地はありません」</b><br>
+      前月は別の入力欄ではなく、<b>同じ表の左端</b>です。11月の表を開いたときも、
+      この6日は左に残ったままになります。</p>
+  </div>
+
+  <div class="bar">
+    <a class="back" id="back">B（名簿）に戻る</a>
+    <button class="go" id="go">次へ</button>
+  </div>
+</div>
+<div id="pop"></div>
+<div id="note"></div>
+
+<script>
+const $=s=>document.getElementById(s), ce=(t,c)=>{const e=document.createElement(t); if(c)e.className=c; return e};
+function note(t){const n=$('note'); n.innerHTML=t; n.classList.add('on');
+  clearTimeout(n._t); n._t=setTimeout(()=>n.classList.remove('on'),2800)}
+
+let KINDS=[{sym:'日',name:'日勤',c:'#2a78d6',work:true},{sym:'準',name:'準夜勤',c:'#eb6834',work:true},
+           {sym:'深',name:'深夜勤',c:'#1baf7a',work:true},{sym:'休',name:'公休',c:'#9a9992',work:false}];
+try{const k=JSON.parse(sessionStorage.getItem('kinds')||'null'); if(k&&k.length)KINDS=k}catch(e){}
+const NIGHT=KINDS.filter(k=>k.work&&/夜/.test(k.name||'')).map(k=>k.sym);
+const col=s=>{const k=KINDS.find(x=>x.sym===s); return k?k.c:'#9a9992'};
+const isWork=s=>{const k=KINDS.find(x=>x.sym===s); return !!(k&&k.work)};
+
+let PEOPLE=[];
+try{PEOPLE=JSON.parse(sessionStorage.getItem('people')||'[]')}catch(e){}
+if(!PEOPLE.length) PEOPLE=['田中 美咲','佐藤 恵','鈴木 彩','高橋 理恵','伊藤 奈美','渡辺 真由',
+  '山本 由紀','中村 さくら','小林 千尋','加藤 瑞希','吉田 遥','山田 杏'].map(n=>({name:n,g:''}));
+
+const PREV=[{d:'10/26',w:'月'},{d:'10/27',w:'火'},{d:'10/28',w:'水'},
+            {d:'10/29',w:'木'},{d:'10/30',w:'金'},{d:'10/31',w:'土'}];
+const NEXT=[{d:'11/1',w:'日'},{d:'11/2',w:'月'},{d:'11/3',w:'火'}];
+
+const S=KINDS.map(k=>k.sym);
+const seed={0:['日','日','','日','日','日'], 1:['','準','深','','深',''],
+            3:['日','日','日','日','日','日'], 6:['深','','日','','日',''],
+            8:['準','深','','日','日','準']};
+let G=PEOPLE.map((_,i)=>(seed[i]||Array(6).fill('')).slice());
+
+function state(row){
+  let run=0;
+  for(let i=row.length-1;i>=0;i--){ const v=row[i]; if(v&&isWork(v))run++; else break }
+  const last=row[row.length-1];
+  if(last&&NIGHT.includes(last)) return {t:'夜勤明け → 11/1は休み',k:'warn'};
+  if(run>=5) return {t:run+'連勤中 → 11/1で'+(run+1)+'日目',k:'bad'};
+  if(run>0) return {t:run+'連勤中',k:''};
+  return {t:'休み明け',k:''};
+}
+
+function draw(){
+  const t=$('t'); t.innerHTML='';
+  const th=ce('thead'), hr=ce('tr'), h0=ce('th','nmh dh'); h0.textContent='看護師'; hr.appendChild(h0);
+  PREV.forEach((p,i)=>{const h=ce('th','dh'+(i===PREV.length-1?' edge':''));
+    h.innerHTML=p.d+'<span>'+p.w+'</span>'; hr.appendChild(h)});
+  NEXT.forEach(p=>{const h=ce('th','dh nxt'); h.innerHTML=p.d+'<span>'+p.w+'</span>'; hr.appendChild(h)});
+  const hs=ce('th','dh stat'); hs.textContent='11/1 の時点で'; hr.appendChild(hs);
+  th.appendChild(hr); t.appendChild(th);
+
+  const tb=ce('tbody'); let n=0;
+  PEOPLE.forEach((p,r)=>{
+    const tr=ce('tr'), nd=ce('td','nm');
+    nd.innerHTML=p.name+(p.g?'<i>'+p.g+'</i>':''); tr.appendChild(nd);
+    PREV.forEach((_,c)=>{
+      const v=G[r][c]; if(v)n++;
+      const td=ce('td','c'+(v?'':' empty')+(c===PREV.length-1?' edge':''));
+      td.innerHTML='<span class="v">'+(v||'')+'</span>';
+      if(v){const s=td.querySelector('.v'); s.style.background=col(v)+'22'; s.style.color=col(v)}
+      td.onclick=e=>pop(e,r,c); tr.appendChild(td);
+    });
+    NEXT.forEach(()=>{const td=ce('td','c nxt'); td.innerHTML='<span class="v"></span>'; tr.appendChild(td)});
+    const st=state(G[r]), sd=ce('td','stat '+st.k); sd.textContent=st.t; tr.appendChild(sd);
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb);
+  $('cnt').textContent=n+'マス';
+
+  const sts=PEOPLE.map((p,r)=>({p,s:state(G[r])}));
+  const bad=sts.filter(x=>x.s.k==='bad'), nite=sts.filter(x=>x.s.k==='warn');
+  const w=$('warn');
+  if(bad.length||nite.length){
+    w.innerHTML='<div class="box w"><div class="hd"><span class="ico w">!</span>'+
+      '11月の頭に、もう効いている決まりがあります</div>'+
+      (bad.length?'<b>'+bad.map(x=>x.p.name).join('・')+'</b> は11/1に連続勤務の上限へ当たります。'+
+        '11/1を休みにするか、D で「連続勤務は5日まで」を外すことになります。'+(nite.length?'<br>':''):'')+
+      (nite.length?'<b>'+nite.map(x=>x.p.name).join('・')+'</b> は夜勤明けなので、11/1は休みになります。':'')+
+      '</div>';
+  } else w.innerHTML='<div class="box ok"><div class="hd"><span class="ico ok">✓</span>'+
+      '月をまたいで効く決まりはありません</div>全員が休み明けか、連続勤務の途中でも上限に届いていません。</div>';
+}
+
+function pop(e,r,c){
+  const p=$('pop'); p.innerHTML='';
+  const row=ce('div','row');
+  S.concat(['']).forEach(s=>{
+    const b=ce('button'); b.textContent=s||'空';
+    if(s){b.style.background=col(s)+'22'; b.style.color=col(s)} else b.title='空欄＝休み';
+    b.onclick=()=>{G[r][c]=s; p.style.display='none'; draw()};
+    row.appendChild(b);
+  });
+  p.appendChild(row); p.style.display='block';
+  const q=e.currentTarget.getBoundingClientRect(), pr=p.getBoundingClientRect();
+  p.style.left=Math.min(Math.max(8,q.left-10),innerWidth-pr.width-10)+'px';
+  p.style.top=(q.bottom+6+pr.height>innerHeight?q.top-pr.height-6:q.bottom+6)+'px';
+}
+addEventListener('mousedown',e=>{
+  if(!e.target.closest('#pop')&&!e.target.closest('td.c'))$('pop').style.display='none'});
+
+$('clear').onclick=()=>{G=PEOPLE.map(()=>Array(6).fill('')); draw();
+  note('ぜんぶ空にしました。全員が休み明けとして扱われます')};
+$('back').onclick=()=>location.href='s2.html';
+$('go').onclick=()=>{try{sessionStorage.setItem('prev',JSON.stringify(G))}catch(e){}
+  location.href='s4.html'};
+draw();
+</script>
+</body>
+</html>

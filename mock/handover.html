@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>引き継ぎ — 勤務表</title>
+<link rel="stylesheet" href="ui.css">
+<style>
+.pane{max-width:940px}
+.sheet{background:var(--s1);border:1px solid var(--line2);border-radius:13px;padding:26px 30px}
+.sheet h1{margin:0 0 4px;font-size:20px}
+.meta{font-size:12.5px;color:var(--ink3);margin-bottom:18px;padding-bottom:13px;
+  border-bottom:1px solid var(--line)}
+table.ho{width:100%;border-collapse:collapse;font-size:12.5px}
+table.ho th{text-align:left;font-size:10.5px;letter-spacing:.04em;color:var(--ink3);
+  border-bottom:1px solid var(--line2);padding:6px 8px;font-weight:700}
+table.ho td{border-bottom:1px solid var(--line);padding:9px 8px;vertical-align:top;color:var(--ink2)}
+table.ho td.t{color:var(--ink);font-weight:600;width:30%}
+table.ho tr.off td{opacity:.48}
+table.ho tr.off td.t{text-decoration:line-through}
+.how{margin-top:18px;font-size:13px;color:var(--ink2);line-height:1.85}
+.how b{color:var(--ink);font-weight:600}
+.src{font-size:11.5px}
+.kind{display:inline-block;font-size:10px;padding:1px 7px;border-radius:20px;
+  border:1px solid var(--line2);color:var(--ink3);margin-left:6px;font-weight:600}
+.kind.rep{border-color:var(--d-ac);color:var(--d-ac)}
+.kind.word{border-color:var(--j-ac);color:var(--j-ac)}
+.empty{padding:40px 0;text-align:center;color:var(--ink3);font-size:14px}
+@media print{ body{padding:0} .bar{display:none} .sheet{border:none;border-radius:0} }
+</style>
+</head>
+<body>
+<div class="pane">
+  <div class="step">引き継ぎ</div>
+  <h1 style="margin:0 0 5px;font-size:23px;font-weight:700">前の師長から受け取るもの。</h1>
+  <p class="lede"><b>これは機能ではなく、来歴の副産物です。</b>
+     決まりが「いつ・何から生まれ・誰が承認したか」を持っているので、一覧を読むだけで渡ります。</p>
+
+  <div class="sheet">
+    <h1 id="ttl">勤務表の決まり</h1>
+    <div class="meta" id="meta"></div>
+    <div id="body"></div>
+    <div class="how" id="how"></div>
+  </div>
+
+  <div class="bar">
+    <a class="back" id="back">勤務表に戻る</a>
+    <button class="go" id="print">印刷する</button>
+  </div>
+</div>
+<div id="note"></div>
+
+<script>
+const $=s=>document.getElementById(s);
+const get=(k,d)=>{try{const v=sessionStorage.getItem(k); return v?JSON.parse(v):d}catch(e){return d}};
+const ward=(()=>{try{return sessionStorage.getItem('ward')||'3階東病棟'}catch(e){return '3階東病棟'}})();
+let R=get('myrules',[]);
+
+$('ttl').textContent=ward+' 勤務表の決まり';
+$('meta').textContent='前任: 師長A（2024-04 〜 2027-03）／次任: 師長B ・ 出力 2027-03-28';
+
+function kindOf(r){
+  if(/手直し/.test(r.src)) return ['反復','rep'];
+  if(/言葉/.test(r.src))   return ['言葉','word'];
+  return ['導入時',''];
+}
+if(!R.length){
+  $('body').innerHTML='<div class="empty">まだ決まりがありません。<br>'+
+    '勤務表の上で手を直すと、ここに溜まっていきます。</div>';
+  $('how').innerHTML='';
+} else {
+  $('body').innerHTML='<table class="ho"><tr><th>決まり</th><th>由来</th>'+
+    '<th>生まれた日</th><th>期限</th><th>最後に効いた</th></tr>'+
+    R.map(r=>{const[k,cl]=kindOf(r);
+      return '<tr'+(r.stopped?' class="off"':'')+'>'+
+      '<td class="t">'+r.t+'<span class="kind '+cl+'">'+k+'</span>'+
+        (r.stopped?'<span class="kind">停止</span>':'')+'</td>'+
+      '<td class="src">'+r.src+(r.exc?'<br>'+r.exc:'')+'</td>'+
+      '<td>'+(r.born||'—')+'</td><td>'+(r.term||'—')+'</td>'+
+      '<td>'+(r.last||'—')+'</td></tr>'}).join('')+'</table>';
+  const rep=R.filter(r=>/手直し/.test(r.src)).length;
+  $('how').innerHTML='<b>読み方</b><br>'+
+    '<b>反復</b> は、前の師長が毎月おなじ直しをしていたところから生まれたものです。'+
+    (rep?'この一覧に '+rep+'本 あります。':'')+
+    '<b>前の師長が言葉にしていなかったこと</b>が、ここに文字で残っています。<br>'+
+    '<b>言葉</b> は、前の師長がセルを指して「これは駄目」と言ったところから。<br>'+
+    '<b>導入時</b> は、過去の表を数えて出したものと、聞き取りで入れたもの。<br>'+
+    '<b>停止</b> は、期限が切れて自動で止まったものです。消してはいません。'+
+    '事情が戻れば、同じ決まりをそのまま生き返らせられます。<br><br>'+
+    '引き継ぎ書を別に書く作業は発生しません。<b>決まりが由来を持っているだけです。</b>';
+}
+$('back').onclick=()=>location.href='roster.html';
+$('print').onclick=()=>window.print();
+</script>
+</body>
+</html>
