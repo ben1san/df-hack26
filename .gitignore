@@ -1,0 +1,17 @@
+# 実行時に作られるもの
+.venv/
+data/
+**/__pycache__/
+*.pyc
+firestore-debug.log
+firebase-debug.log
+.firebase/
+
+# ビルド成果物。Dockerfile が node ステージで作り直すのでコミットしない
+web/
+node_modules/
+frontend/node_modules/
+frontend/tsconfig.tsbuildinfo
+
+# OS
+.DS_Store
