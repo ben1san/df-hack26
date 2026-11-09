@@ -23,6 +23,7 @@ cd frontend && npm run build
 | `python scripts/stage0.py` | 過去の表を数えてルール候補を出す（表示だけ） |
 | `python scripts/e2e.py` | 段階0→1→2→3→4をHTTPで1本通す |
 | `python scripts/fixture.py` | デモ用。8月から使っている状態を作り、反復検出を発火させる |
+| `python scripts/reset_firestore.py [wid]` | Firestore の病棟を1つ消す。**追記専用なので、消さずに `fixture.py` を再実行すると手修正が二重に積まれ、反復検出の閾値が狂う** |
 | `python scripts/bench_repo.py` | 保存層の操作別レイテンシ。エミュレータと本物を同じ尺で測る |
 | `python scripts/verify_firestore.py` | 追記専用・並び・サーバ時刻・回帰の前提を実際に確かめる |
 | `python scripts/smoke_vertex.py` | LLM経路の疎通。`route` が `stub(...)` なら届いていない |
