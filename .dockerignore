@@ -1,6 +1,5 @@
 .venv
 data
-mock
 node_modules
 frontend/node_modules
 web

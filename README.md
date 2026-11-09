@@ -123,7 +123,6 @@ python scripts/fixture.py                   # 8月から使っている状態を
 | `app/main.py` | API。**表を上書きするエンドポイントが無い** |
 | `frontend/src/lib/types.ts` | `dsl.py` の写し。型が境界をまたぐ |
 | `frontend/src/screens/` | 7画面。HashRouter なので再読み込みが壊れない |
-| `mock/` | 2026-11-08に作った操作モック。**「ぱっと見で何をすればいいか分からない」で止まった**ので、段階レール・凡例・ルール一覧の常時表示を捨てて作り直した。捨てた案の現物 |
 | `scripts/` | 検証と再現。`fixture.py`（デモ状態）`bench_repo.py`（保存層のレイテンシ）`verify_firestore.py`（追記専用などの性質）`smoke_vertex.py`（LLM経路）`deploy.sh` |
 
 ## 構成上の禁止
